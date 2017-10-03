@@ -1,0 +1,116 @@
+<!doctype html>
+<head>
+    <script src="resource/jquery.min.js"></script>
+    <script src="resource/vue.min.js"></script>
+    <link type="image/ico" rel="icon" href="//resource/icon.png">
+</head>
+<body>
+<div id="app" style="width:800px;height:400px">
+    <a href="http://www.sin5th.com">
+        <img alt="Change Header" src="resource/icon.png">
+    </a>
+    <template>
+        <div>
+            <h1>Action</h1>
+            <button type="button" @click="Save()">保存</button>
+            <button type="button" @click="Log(JSON.stringify(user))">日志</button>
+        </div>
+
+        <div>
+            <h1>Search</h1>
+            <input v-for="(tagsName, i) in config.types"
+                   @keyup.enter="$set(searchFilter.filters,i,$event.target.value)"
+                   @focus="BindComplete(i, $event.target)"
+                   :placeholder="tagsName">
+        </div>
+
+
+        <div>
+            <h1>Config</h1>
+            <input placeholder="new host"
+                   @keyup.enter="AddHost($event.target.value);$event.target.value='';">
+            <div v-for="(ports, host) in user.hosts">
+                <template v-for="(paths, port) in ports">
+                    <template v-for="(headers, path) in paths">
+                        <input placeholder="host"
+                               v-model="headers.host"
+                               :_="headers.host!=undefined||$set(headers,'host',host)"
+                               :style="headers.host!=host?{color:'red'}:{}"
+                               @keyup.enter="
+                                var hosts=user.hosts;
+                                var newValue=$event.target.value;
+                                if (!hosts[newValue]){
+                                    $set(hosts,newValue,ports);
+                                    $delete(hosts,host);
+                                }">
+                        <input placeholder="port"
+                               v-model="headers.port"
+                               :_="headers.port!=undefined||$set(headers,'port',port)"
+                               :style="headers.port!=port?{color:'red'}:{}"
+                               @keyup.enter="
+                                var newValue=$event.target.value;
+                                if (!ports[newValue]){
+                                    $set(ports,newValue,paths);
+                                    $delete(ports,port);
+                                }">
+                        <input placeholder="path"
+                               v-model="headers.path"
+                               :_="headers.path!=undefined||$set(headers,'path',path)"
+                               :style="headers.path!=path?{color:'red'}:{}"
+                               @keyup.enter="
+                                var newValue=$event.target.value;
+                                if (!paths[newValue]){
+                                    $delete(paths,path);
+                                    $set(paths,newValue,headers);
+                                }">
+
+                        <button @click="$delete(user.hosts,host);">delete</button>
+                        <ul>
+                            <li v-for="(name,nameIndex) in ['Request Headers','Response Headers']">
+                                {{ name }}
+                                <ul>
+                                    <li v-if="SearchFilter(header[3])"
+                                        v-for="(header, index) in headers[nameIndex]">
+                                        <button @click="headers[nameIndex].splice(index,1)">DEL</button>
+                                        <input type="checkbox"
+                                               v-model="header[4]">
+                                        <input v-for="_, i in [0,1,2]"
+                                               v-model="header[i]"
+                                               @focus="BindComplete((nameIndex+1)*10+i, $event.target)"
+                                               :placeholder="'+'+config.values[i]">
+                                        <ul>
+                                            <li v-for="(tags, i) in header[3]">
+                                                <button v-for="(tag, tag_i) in tags"
+                                                        @click="tags.splice(tag_i,1)">
+                                                    {{ tag }}
+                                                </button>
+                                                <input @keyup.enter="tags.push($event.target.value);$event.target.value=''"
+                                                       @focus="BindComplete(i, $event.target)"
+                                                       :placeholder="'+'+config.types[i]">
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <button @click="AddItem(headers[nameIndex])">NEW</button>
+                                    </li>
+                                </ul>
+                            </li>
+                            {{config.hosts}}
+                        </ul>
+                    </template>
+                </template>
+            </div>
+        </div>
+
+        <div>
+            <h1>Suggestion</h1>
+            <div v-for="(v, _) in FilterComplete()">
+                <label @click="AutoComplete(v)">{{ v }}</label>
+            </div>
+        </div>
+
+    </template>
+</div>
+<script src="scripts/store.js"></script>
+<script src="scripts/popup.js"></script>
+</body>
