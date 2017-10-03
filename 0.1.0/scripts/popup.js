@@ -1,9 +1,4 @@
-Vue.component('name-input', {
-  // options
-  // template: '<div>A custom component!</div>'
-  props:["hosts","host"]
-})
-
+Vue.config.productionTip = false
 
 var app = new Vue({
   el: '#app',
