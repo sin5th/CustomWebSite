@@ -2,6 +2,7 @@
   "background": {
     "scripts": [
       "resource/jquery.min.js",
+      "scripts/store.js",
       "scripts/background.js"
     ]
   },

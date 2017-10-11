@@ -2,10 +2,12 @@
 <head>
     <script src="resource/jquery.min.js"></script>
     <script src="resource/vue.min.js"></script>
-    <link type="image/ico" rel="icon" href="//resource/icon.png">
+    <script src="resource/bootstrap.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="resource/bootstrap.min.css">
+    <link type="image/ico" rel="icon" href="resource/icon.png">
 </head>
 <body>
-<div id="app" style="width:800px;height:400px">
+<div id="app">
     <a href="http://www.sin5th.com">
         <img alt="Change Header" src="resource/icon.png">
     </a>
@@ -13,10 +15,10 @@
         <div>
             <h1>Action</h1>
             <button type="button" @click="Save()">保存</button>
-            <button type="button" @click="Log(JSON.stringify(user))">日志</button>
+            <button type="button" @click="Log(JSON.stringify(user, null, 1))">日志</button>
         </div>
 
-        <div>
+        <div class="row">
             <h1>Search</h1>
             <input v-for="(tagsName, i) in config.types"
                    @keyup.enter="$set(searchFilter.filters,i,$event.target.value)"
@@ -27,79 +29,8 @@
 
         <div>
             <h1>Config</h1>
-            <input placeholder="new host"
-                   @keyup.enter="AddHost($event.target.value);$event.target.value='';">
-            <div v-for="(ports, host) in user.hosts">
-                <template v-for="(paths, port) in ports">
-                    <template v-for="(headers, path) in paths">
-                        <input placeholder="host"
-                               v-model="headers.host"
-                               :_="headers.host!=undefined||$set(headers,'host',host)"
-                               :style="headers.host!=host?{color:'red'}:{}"
-                               @keyup.enter="
-                                var hosts=user.hosts;
-                                var newValue=$event.target.value;
-                                if (!hosts[newValue]){
-                                    $set(hosts,newValue,ports);
-                                    $delete(hosts,host);
-                                }">
-                        <input placeholder="port"
-                               v-model="headers.port"
-                               :_="headers.port!=undefined||$set(headers,'port',port)"
-                               :style="headers.port!=port?{color:'red'}:{}"
-                               @keyup.enter="
-                                var newValue=$event.target.value;
-                                if (!ports[newValue]){
-                                    $set(ports,newValue,paths);
-                                    $delete(ports,port);
-                                }">
-                        <input placeholder="path"
-                               v-model="headers.path"
-                               :_="headers.path!=undefined||$set(headers,'path',path)"
-                               :style="headers.path!=path?{color:'red'}:{}"
-                               @keyup.enter="
-                                var newValue=$event.target.value;
-                                if (!paths[newValue]){
-                                    $delete(paths,path);
-                                    $set(paths,newValue,headers);
-                                }">
-
-                        <button @click="$delete(user.hosts,host);">delete</button>
-                        <ul>
-                            <li v-for="(name,nameIndex) in ['Request Headers','Response Headers']">
-                                {{ name }}
-                                <ul>
-                                    <li v-if="SearchFilter(header[3])"
-                                        v-for="(header, index) in headers[nameIndex]">
-                                        <button @click="headers[nameIndex].splice(index,1)">DEL</button>
-                                        <input type="checkbox"
-                                               v-model="header[4]">
-                                        <input v-for="_, i in [0,1,2]"
-                                               v-model="header[i]"
-                                               @focus="BindComplete((nameIndex+1)*10+i, $event.target)"
-                                               :placeholder="'+'+config.values[i]">
-                                        <ul>
-                                            <li v-for="(tags, i) in header[3]">
-                                                <button v-for="(tag, tag_i) in tags"
-                                                        @click="tags.splice(tag_i,1)">
-                                                    {{ tag }}
-                                                </button>
-                                                <input @keyup.enter="tags.push($event.target.value);$event.target.value=''"
-                                                       @focus="BindComplete(i, $event.target)"
-                                                       :placeholder="'+'+config.types[i]">
-                                            </li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <button @click="AddItem(headers[nameIndex])">NEW</button>
-                                    </li>
-                                </ul>
-                            </li>
-                            {{config.hosts}}
-                        </ul>
-                    </template>
-                </template>
-            </div>
+            <sub-group-input depth="2" :objs="user.hosts">
+            </sub-group-input>
         </div>
 
         <div>
@@ -111,6 +42,107 @@
 
     </template>
 </div>
+</body>
 <script src="scripts/store.js"></script>
 <script src="scripts/popup.js"></script>
-</body>
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+    }
+
+    @keyframes zoomIn {
+        from {
+            width: 30px;
+        }
+    }
+
+    .hide-me {
+        display: none;
+    }
+
+    :hover > .hide-me {
+        animation: fadeIn 1s, zoomIn 1s;
+        display: inherit;
+    }
+
+    :hover > .show-me {
+        display: none;
+    }
+
+    .group-item {
+        user-select: none;
+
+        padding: 0;
+        border: solid 10px transparent;
+        border-bottom: 0;
+    }
+
+    .group-item > * {
+        padding: 10px;
+
+        box-shadow: 0 0 20px #ccc;
+    }
+
+    .group-item-add {
+        padding: 0;
+
+        display: inline-flex;
+        align-items: center;
+
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    .group-item-add > span {
+        margin: 6px;
+        height: 18px;
+        width: 18px;
+    }
+
+    .group-item-add > input {
+
+        text-align: center;
+
+        height: 28px;
+        width: 300px;
+        border: 0;
+        padding: 0;
+        margin: 1px;
+
+        border-radius: 4px;
+
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.5);
+        outline: none;
+    }
+
+    .group-item-add > input:focus {
+        cursor: text;
+        background: white;
+    }
+
+    .cross {
+        background: linear-gradient(to bottom, transparent 35%, #777 35%, #777 65%, transparent 65%),
+        linear-gradient(to right, transparent 35%, #777 35%, #777 65%, transparent 65%);
+    }
+
+    .change-input {
+        cursor: pointer;
+
+        /*border: 1px solid white;*/
+        border: 0;
+        border-radius: 4px;
+        box-shadow: 0 0 20px white;
+
+        background: rgba(255, 255, 255, 0.5);
+        outline: none;
+
+    }
+
+    .change-input:focus {
+        cursor: text;
+        background: white;
+    }
+</style>
