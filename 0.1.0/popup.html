@@ -29,7 +29,7 @@
 
         <div>
             <h1>Config</h1>
-            <sub-group-input depth="2" :objs="user.hosts">
+            <sub-group-input depth="2" :objs="user.hosts" group="">
             </sub-group-input>
         </div>
 
@@ -63,7 +63,7 @@
     }
 
     :hover > .hide-me {
-        animation: fadeIn 1s, zoomIn 1s;
+        animation: fadeIn 1s;
         display: inherit;
     }
 
@@ -72,27 +72,34 @@
     }
 
     .group-item {
+        animation: fadeIn .7s;
+
         user-select: none;
 
-        padding: 0;
-        border: solid 10px transparent;
-        border-bottom: 0;
+        padding: 20px;
+        margin: 10px 0 0 10px;
+        border: 0;
+        border-radius: 4px;
+
+        /*box-shadow: 0 0 20px #ccc;*/
     }
 
-    .group-item > * {
-        padding: 10px;
+    /*.group-item > * {*/
+        /*padding: 10px;*/
 
-        box-shadow: 0 0 20px #ccc;
-    }
+    /*}*/
 
     .group-item-add {
         padding: 0;
+        margin: 0 0 0 10px;
+        border: 0;
+        border-radius: 4px;
+        /*box-shadow: 0 0 20px #ccc;*/
 
         display: inline-flex;
         align-items: center;
 
-        border-radius: 4px;
-        background: rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.1);
     }
 
     .group-item-add > span {
@@ -113,9 +120,9 @@
 
         border-radius: 4px;
 
-        cursor: pointer;
-        background: rgba(255, 255, 255, 0.5);
         outline: none;
+        cursor: pointer;
+        background: none;
     }
 
     .group-item-add > input:focus {
@@ -124,21 +131,29 @@
     }
 
     .cross {
-        background: linear-gradient(to bottom, transparent 35%, #777 35%, #777 65%, transparent 65%),
-        linear-gradient(to right, transparent 35%, #777 35%, #777 65%, transparent 65%);
+        background: linear-gradient(to bottom, transparent 35%, #333 35%, #333 65%, transparent 65%),
+        linear-gradient(to right, transparent 35%, #333 35%, #333 65%, transparent 65%);
     }
 
     .change-input {
         cursor: pointer;
+        text-align: center;
 
-        /*border: 1px solid white;*/
+        padding: 0;
+        margin: 0;
         border: 0;
         border-radius: 4px;
-        box-shadow: 0 0 20px white;
 
-        background: rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.1);
         outline: none;
+    }
 
+    .change-input.input-error {
+        box-shadow: 0 0 20px 1px red;
+    }
+
+    .change-input.input-warning {
+        box-shadow: 0 0 20px 4px darkorange;
     }
 
     .change-input:focus {

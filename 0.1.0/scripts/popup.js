@@ -131,14 +131,11 @@ var config = {
 runtime = customConfig.runtime()
 
 Vue.component('sub-group', {
-  template: `<div>
+  template: `<div class="col-md-12">
     <div v-for="(name,nameIndex) in ['Request Headers']">
-        <div style="border: solid 10px transparent;padding: 0">
                 <button class="btn btn-primary"
                 @click="Add(headers, nameIndex)">Add New {{name}}</button>
-        </div>
-        <div style="border: solid 10px transparent;padding: 0" v-if="SearchFilter(header[3])" v-for="(header, index) in headers[nameIndex]">
-            <div style="userSelect: none;padding: 10px;background: white;boxShadow: 0 0 10px #888888;">
+        <div class="group-item" v-if="SearchFilter(header[3])" v-for="(header, index) in headers[nameIndex]">
                 <button class="btn btn-danger" 
                     @click="headers[nameIndex].splice(index,1)" style="float: right">X
                 </button>
@@ -165,7 +162,6 @@ Vue.component('sub-group', {
                         :placeholder="'+'+config.types[i]">
                     </div>
                 </div>
-            </div>
         </div>
     </div>
 </div>`,
@@ -194,32 +190,27 @@ Vue.component('sub-group', {
 Vue.component('sub-group-input', {
   // options
   template: `<div class="col-md-12">
-    <div class="row group-item">
-        <div class="group-item-add">
-          <span class="cross show-me"></span>
-          <input class="hide-me"
-          :placeholder="' Add New ' + suggestions[depth]"
-          @keyup.enter="
-          Add($event.target.value);
-          $event.target.value='';">
-        </div>
-    </div>
+      <div class="group-item-add">
+        <span class="cross show-me"></span>
+        <input class="hide-me"
+        :placeholder="' Add New ' + suggestions[depth]"
+        @keyup.enter="
+        Add($event.target.value);
+        $event.target.value='';">
+      </div>
 
-    <div class="row group-item" v-bind:key="k" v-for="(k, _) in Sorted(objs)">
-        <div class="col-md-12" :style="itemStyle">
-            <button class="btn btn-danger" @click="Delete(k);" style="float: right;">X</button>
+    <div class="group-item" :style="itemStyle" style="display: flex" v-bind:key="group+'/'+k" v-for="(k, _) in Sorted(objs)">
             <input v-model="keysMap[k]"
             @keyup.enter="Rename(k, keysMap[k])"
-            class="change-input"
-            :style="InputStyle(k, keysMap[k], keysMap)"
+            :class="InputClass(k, keysMap)"
             placeholder="---"
             >
-            <sub-group-input v-if="depth > 0" :depth="depth-1" :objs="objs[k].v"></sub-group-input>
+            <sub-group-input v-if="depth > 0" :depth="depth-1" :objs="objs[k].v" :group="group+'/'+k"></sub-group-input>
             <sub-group v-else :headers="objs[k].v"></sub-group>
-        </div>
+            <button class="btn btn-danger" style="height: 100%" @click="Delete(k);">X</button>
     </div>
 </div>`,
-  props: ["objs", "depth"],
+  props: ["objs", "depth", "group"],
   data: function () {
     return {
       suggestions: ['Uri', 'Port', 'Host'],
@@ -229,31 +220,24 @@ Vue.component('sub-group-input', {
   computed: {
     itemStyle: function () {
       return {
-        background: ["#4caf50", "#8bc34a", "#cddc39"][this.depth],
+        background: ["rgb(200, 243, 151)", "rgb(159, 226, 81)","rgb(121, 212, 125)"][this.depth],
       }
     },
   },
-  watch: {
-    objs: function (n, o) {
-      if (Object.keys(o).length == 0) {
-        var keysMap = this.keysMap
-        Object.keys(n).forEach(function (t) {
-          Vue.set(keysMap, t, t)
-        })
-      }
-    }
-  },
   methods: {
-    InputStyle: function (o, n, exists) {
-      var r = {
-        textAlign: 'center',
-      };
-      n = n || "";
+    InputClass: function (o, exists) {
+      var r = ["change-input"]
+
       o = o || "";
+      if (exists[o] == undefined) {
+        Vue.set(exists, o, o)
+      }
+      var n = exists[o]
       if (n != o) {
-        r.borderColor = 'red'
-        if (exists[n]) {
-          r.color = 'red'
+        if (typeof exists[n] != "undefined") {
+          r.push("input-error")
+        } else {
+          r.push("input-warning")
         }
       }
       return r
