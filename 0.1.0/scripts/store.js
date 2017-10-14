@@ -5,12 +5,29 @@ var migrate_funcs = [
     return items
   },
   function (items) { // add port&path support
-    console.log(items)
     items.hosts = items.hosts || {}
     var hosts = items.hosts
     Object.keys(hosts).forEach(function (k) {
       hosts[k] = {"": {"": hosts[k]}}
     })
+    return items
+  },
+  function (items) { // add priority support
+    function addPriority(objs, depth) {
+      if (!('forEach' in objs)) {
+        var p = 0
+        Object.keys(objs).forEach(function (k) {
+          if (depth > 0) addPriority(objs[k], depth - 1)
+          objs[k] = {
+            p: p++,
+            v: objs[k]
+          }
+        })
+      }
+    }
+
+    addPriority(items.hosts, 2)
+    // console.log(JSON.stringify(items, null, 4))
     return items
   }
 ]
@@ -28,7 +45,7 @@ function migrate(items) {
 
   try {
     for (i = items.version; i < migrate_funcs.length; i++) {
-      items = migrate_funcs[i](items)
+      items = migrate_funcs[i](items) || items
       items.version = i + 1;
     }
   } catch (err) {
@@ -37,6 +54,10 @@ function migrate(items) {
   }
 
   return items
+}
+
+if (typeof chrome == "undefined") {
+  chrome = {}
 }
 
 // fake data
@@ -90,7 +111,10 @@ var customConfig = function () {
   var runtime = {
     saveTime: undefined,
     getNewHost: function () {
-      return {"": {"": [[], []]}}
+      return {
+        p: new Date().getTime(),
+        v: {}
+      }
     },
     getNewHeader: function () {
       return ["", "", "", [[], [], []], true]

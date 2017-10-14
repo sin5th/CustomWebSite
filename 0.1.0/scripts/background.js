@@ -1,7 +1,9 @@
 var configs = {}
 
-chrome.storage.local.get(["hosts", "saveTime"], function (items) {
+chrome.storage.local.get(["hosts", "version"], function (items) {
+  items = migrate(items)
   configs = items["hosts"] || {}
+  console.log(configs);
 });
 
 chrome.storage.onChanged.addListener(function (changes, namespace) {
@@ -17,12 +19,12 @@ function getHeaders(hosts, url, type, method, stage) {
   // check host
   var c = hosts[url.hostname];
   if (c === undefined) return false;
-  c = c[url.port] || c[""]
+  c = c.v[url.port] || c.v[""]
   if (c === undefined) return false;
-  c = c[url.pathname] || c[""]
-
+  c = c.v[url.pathname] || c.v[""]
+  
   // check headers
-  var headers = c[{"req": 0, "rsp": 1}[stage]];
+  var headers = c.v[{"req": 0, "rsp": 1}[stage]];
   if (headers === undefined) return false;
 
   // only map filters
