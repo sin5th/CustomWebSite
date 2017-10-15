@@ -30,15 +30,15 @@ function getHeaders(hosts, url, type, method, stage) {
   // only map filters
   var res = [];
   var condition = [method, type, url.protocol];
-  console.log(condition)
   headers.forEach(function (header) {
     if (!header[4]) {
       return
     }
     var conditions = header[3];
     for (var i = 0; i < condition.length; i++) {
+      console.log(conditions[i],condition[i]);
       if (Object.keys(conditions[i]).length > 0 &&
-        conditions[i].hasOwnProperty(condition[i])) {
+        !conditions[i].hasOwnProperty(condition[i])) {
         return;
       }
     }
