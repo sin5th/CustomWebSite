@@ -8,18 +8,28 @@
     <link type="image/ico" rel="icon" href="resource/icon.png">
 </head>
 <body>
-<div id="app">
-    <a href="http://www.sin5th.com">
-        <img alt="Change Header" src="resource/icon.png">
-    </a>
+<div id="app" style="min-width: 1200px">
     <template>
-        <div>
-            <h1>Action</h1>
-            <button type="button" @click="Save()">保存</button>
-            <button type="button" @click="Log(JSON.stringify(user, null, 1))">日志</button>
+        <div class="toolbar-parent">
+            <div class="toolbar">
+                <a href="https://github.com/sin5th" target="_blank">
+                    <img style="height: 100%" alt="Author Blog" src="resource/icon.png">
+                </a>
+                <button class="btn btn-success" type="button" @click="Log(JSON.stringify(user, null, 1))">Log</button>
+                <button class="btn btn-success" :class="changed?['input-warning']:[]" type="button" @click="Save()">
+                    Save
+                </button>
+            </div>
         </div>
 
-        <div class="row">
+
+        <div class="row group-item group-item-0">
+            <sub-group-input @changed="Changed" depth="2" :objs="user.hosts" group="">
+            </sub-group-input>
+        </div>
+
+
+        <div v-if="false" class="row">
             <h1>Search</h1>
             <input v-for="(tagsName, i) in config.types"
                    @keyup.enter="$set(searchFilter.filters,i,$event.target.value)"
@@ -27,14 +37,7 @@
                    :placeholder="tagsName">
         </div>
 
-
-        <div>
-            <h1>Config</h1>
-            <sub-group-input depth="2" :objs="user.hosts" group="">
-            </sub-group-input>
-        </div>
-
-        <div>
+        <div v-if="false">
             <h1>Suggestion</h1>
             <div v-for="(v, _) in FilterComplete()">
                 <label @click="AutoComplete(v)">{{ v }}</label>
@@ -59,12 +62,33 @@
         }
     }
 
+    ::-webkit-input-placeholder {
+        color: #999;
+    }
+
+    .toolbar-parent {
+        height: 60px;
+    }
+
+    .toolbar {
+        position: fixed;
+        width: 100%;
+        height: 60px;
+        padding: 10px;
+        top: 0;
+        left: 0;
+        z-index: 10000;
+        /*text-align: right;*/
+        background: none;
+
+    }
+
     .hide-me {
         display: none;
     }
 
     :hover > .hide-me {
-        animation: fadeIn 1s;
+        /*animation: fadeIn 1s;*/
         display: inherit;
     }
 
@@ -72,52 +96,78 @@
         display: none;
     }
 
+    .group-item-0 {
+        /*background: rgb(121, 212, 125);*/
+        background: #CFDEE7;
+    }
+
+    .group-item-1 {
+        /*background: rgb(159, 226, 81);*/
+        background: #92B4F4;
+    }
+
+    .group-item-2 {
+        /*background: rgb(200, 243, 151);*/
+        background: #5E7CE2;
+
+    }
+
+    .group-item-0-0 {
+        background: #ffa5f4;
+    }
+
+    .group {
+        padding: 0 10px;
+        width: 100%;
+    }
+
     .group-item {
         animation: fadeIn .7s;
 
         user-select: none;
 
-        padding: 20px;
-        margin: 10px 0 0 10px;
+        padding: 8px;
+        margin: 8px 0 0 0;
         border: 0;
         border-radius: 4px;
 
-        /*box-shadow: 0 0 20px #ccc;*/
+        display: flex;
     }
 
-    /*.group-item > * {*/
-    /*padding: 10px;*/
-
-    /*}*/
+    .group-item > button {
+        height: 100%;
+    }
 
     .group-item-add {
         padding: 0;
-        margin: 0 0 0 10px;
+        margin: 0;
         border: 0;
         border-radius: 4px;
-        /*box-shadow: 0 0 20px #ccc;*/
 
         display: inline-flex;
-        align-items: center;
+        /*align-items: center;*/
+        flex-wrap: wrap;
 
-        background: rgba(255, 255, 255, 0.1);
+        background: none;
     }
 
     .group-item-add > span {
-        margin: 6px;
-        height: 18px;
-        width: 18px;
+        margin: 7px;
+        height: 20px;
+        width: 20px;
+
+        background: linear-gradient(to bottom, transparent 35%, #333 35%, #333 65%, transparent 65%),
+        linear-gradient(to right, transparent 35%, #333 35%, #333 65%, transparent 65%);
     }
 
     .group-item-add > input {
-
         text-align: center;
 
-        height: 28px;
+        height: 34px;
         width: 300px;
         border: 0;
         padding: 0;
-        margin: 1px;
+        margin: 0;
 
         border-radius: 4px;
 
@@ -128,12 +178,34 @@
 
     .group-item-add > input:focus {
         cursor: text;
-        background: white;
     }
 
-    .cross {
-        background: linear-gradient(to bottom, transparent 35%, #333 35%, #333 65%, transparent 65%),
-        linear-gradient(to right, transparent 35%, #333 35%, #333 65%, transparent 65%);
+    .group-item-add > button {
+        outline: none;
+        white-space: nowrap;
+        background: transparent;
+        border: 1px dashed #999;
+        border-radius: 4px;
+        margin: 1px;
+        font-size: 6px;
+    }
+
+    .group-item-add > button:hover {
+        box-shadow: 0 0 20px white;
+    }
+
+    .group-item-add > button.disable {
+        color: #777
+    }
+
+    .group-item-add > button.enable {
+        color: white;
+    }
+
+    .group-item-tags {
+        padding-top: 8px;
+        display: flex;
+        flex-wrap: nowrap;
     }
 
     .change-input {
@@ -145,20 +217,25 @@
         border: 0;
         border-radius: 4px;
 
-        background: rgba(255, 255, 255, 0.1);
+        background: none;
         outline: none;
     }
 
-    .change-input.input-error {
-        box-shadow: 0 0 20px 1px red;
-    }
-
-    .change-input.input-warning {
-        box-shadow: 0 0 20px 4px darkorange;
+    .change-input:hover {
+        box-shadow: 0 0 20px white;
     }
 
     .change-input:focus {
         cursor: text;
-        background: white;
+        box-shadow: 0 0 20px 5px white;
+        /*background: rgba(255, 255, 255, 0.3);*/
+    }
+
+    .input-error, .change-input.input-error {
+        box-shadow: 0 0 20px 5px red;
+    }
+
+    .input-warning, .change-input.input-warning {
+        box-shadow: 0 0 20px 5px #ffbc21;
     }
 </style>

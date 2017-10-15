@@ -1,8 +1,8 @@
 var configs = {}
 
 chrome.storage.local.get(["hosts", "version"], function (items) {
-  items = migrate(items)
-  configs = items["hosts"] || {}
+  items = migrate(items);
+  configs = items["hosts"] || {};
   console.log(configs);
 });
 
@@ -28,21 +28,22 @@ function getHeaders(hosts, url, type, method, stage) {
   if (headers === undefined) return false;
 
   // only map filters
-  var res = []
-  var condition = [method, type, url.protocol]
+  var res = [];
+  var condition = [method, type, url.protocol];
+  console.log(condition)
   headers.forEach(function (header) {
     if (!header[4]) {
       return
     }
     var conditions = header[3];
-    for (i = 0; i < condition.length; i++) {
-      if (conditions[i].length > 0 &&
-        conditions[i].indexOf(condition[i]) < 0) {
+    for (var i = 0; i < condition.length; i++) {
+      if (Object.keys(conditions[i]).length > 0 &&
+        conditions[i].hasOwnProperty(condition[i])) {
         return;
       }
     }
     res.push({name: header[0], value: header[1], separator: header[2]})
-  })
+  });
 
   return res.length > 0 ? res : false
 }

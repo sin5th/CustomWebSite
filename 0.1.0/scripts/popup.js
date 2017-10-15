@@ -1,6 +1,6 @@
 Vue.config.productionTip = false;
 
-const config = {
+var config = {
   values: ['name', 'value', 'spliter'],
   types: ['method', 'type', 'protocol'],
   autoComplete: {
@@ -13,24 +13,28 @@ const config = {
       'HEAD',
       'OPTIONS',
       'TRACE',
-      'CONNECT'],
+      'CONNECT',
+    ],
     1: [
+      'xmlhttprequest',
+
       'main_frame',
       'sub_frame',
       'stylesheet',
       'script',
       'image',
       'object',
-      'xmlhttprequest',
-      'other'],
+      'other',
+    ],
     2: [
+      'chrome-extension:',
       'https:',
+      'file:',
       'http:',
       'ftp:',
-      'file:',
       'ws:',
       'wss:',
-      'chrome-extension:'],
+    ],
     10: [
       'Authorization',
       'Cache-Control',
@@ -123,64 +127,97 @@ const config = {
       'X-UA-Compatible',
       'X-Content-Duration',
       'X-Content-Security-Policy',
-      'X-WebKit-CSP'
+      'X-WebKit-CSP',
     ],
     21: [],
     22: [',']
   }
 };
 
-let runtime = customConfig.runtime();
+var runtime = customConfig.runtime();
 
 Vue.component('sub-group', {
-  template: `<div class="col-md-12">
-    <div v-for="(name,nameIndex) in ['Request Headers']">
-                <button class="btn btn-primary"
-                @click="Add(headers, nameIndex)">Add New {{name}}</button>
-        <div class="group-item" v-if="SearchFilter(header[3])" v-for="(header, index) in headers[nameIndex]">
-                <button class="btn btn-danger" 
-                    @click="headers[nameIndex].splice(index,1)" style="float: right">X
-                </button>
-            
+  template: `<div class="group">
+    <template v-for="(type,typeIndex) in ['Request Headers']">
+        <button class="btn btn-primary" @click="Add(headers, typeIndex)">
+            Add New {{type}}
+        </button>
+        <div class="group-item" :class="'group-item-0-'+typeIndex"
+             v-if="SearchFilter(header[3])"
+             v-for="(header, index) in headers[typeIndex]">
+
+            <div class="group">
                 <input type="checkbox" v-model="header[4]">
-                
+
                 <input
-                  v-for="_, i in [0,1,2]"
-                  v-model="header[i]"
-                  :class="header[i]&&[]||['change-input']"
-                  @focus="BindComplete((nameIndex+1)*10+i, $event.target)"
-                  :placeholder="'+'+config.values[i]">
-                
-                <div>
-                    <div v-for="(tags, i) in header[3]">
-                        <button v-for="(tag, tag_i) in tags"
-                        @click="tags.splice(tag_i,1)">
-                        {{ tag }}
+                        v-for="_, i in [0,1,2]"
+                        v-model="header[i]"
+                        class="change-input"
+                        @focus="BindComplete((typeIndex+1)*10+i, $event.target)"
+                        :placeholder="'+'+config.values[i]">
+
+
+                <div class="group group-item-tags">
+                    <div class="group-item-add" v-for="(tags, i) in candidateTags.groups">
+                        <button :class="header[3][i][tag]?['enable']:['disable']"
+                                @click="ToggleTag(header[3][i], tag)"
+                                v-for="tag in tags">
+                            {{tag}}
                         </button>
-                        
-                        <input class="change-input"
-                        @keyup.enter="tags.push($event.target.value);$event.target.value=''"
-                        @focus="BindComplete(i, $event.target)"
-                        :placeholder="'+'+config.types[i]">
                     </div>
                 </div>
+            </div>
+
+
+            <button class="btn btn-danger"
+                    @click="headers[typeIndex].splice(index,1)">
+                X
+            </button>
         </div>
-    </div>
+    </template>
 </div>`,
   props: ["headers"],
   computed: {
+    candidateTags: function () {
+      var groups = [];
+      var map = {};
+      [0, 1, 2].forEach(function (i) {
+        config.autoComplete[i].forEach(function (tag) {
+          map[tag] = i
+        });
+        groups[i] = config.autoComplete[i]
+      });
+      return {
+        groups: groups,
+        map: map,
+      }
+    },
     config: function () {
       return config
+    },
+
+  },
+  watch: {
+    headers: function () {
+      this.$emit("changed")
     }
   },
   methods: {
     BindComplete: function () {
 
     },
+    ToggleTag: function (p, k) {
+      if (p[k]) {
+        Vue.delete(p, k)
+      } else {
+        Vue.set(p, k, true)
+      }
+    },
     Add: function (p, k) {
-      let l = p[k] || [];
+      var l = p[k] || [];
       l.unshift(runtime.getNewHeader());
-      Vue.set(p, k, l)
+      Vue.set(p, k, l);
+      this.$emit('changed');
     },
     SearchFilter: function () {
       return true
@@ -191,25 +228,26 @@ Vue.component('sub-group', {
 
 Vue.component('sub-group-input', {
   // options
-  template: `<div class="col-md-12">
-      <div class="group-item-add">
-        <span class="cross show-me"></span>
-        <input class="hide-me"
-        :placeholder="' Add New ' + suggestions[depth]"
-        @keyup.enter="
-        Add($event.target.value);
-        $event.target.value='';">
-      </div>
+  template: `<div class="group">
+    <div class="group-item-add">
+    <input class="hide-me change-input"
+      :placeholder="'Add New ' + suggestions[depth]"
+      @keyup.enter="
+      Add($event.target.value);
+      $event.target.value='';">
+      <span class="show-me"></span>
+    </div>
 
-    <div class="group-item" :style="itemStyle" style="display: flex" v-bind:key="group+'/'+k" v-for="(k, _) in Sorted(objs)">
+    <div class="group-item" :class="'group-item-'+depth" v-bind:key="group+'/'+k" v-for="(k, _) in Sorted(objs)">
             <input v-model="keysMap[k]"
             @keyup.enter="Rename(k, keysMap[k])"
+            class="change-input"
             :class="InputClass(k, keysMap)"
             placeholder="---"
             >
-            <sub-group-input v-if="depth > 0" :depth="depth-1" :objs="objs[k].v" :group="group+'/'+k"></sub-group-input>
-            <sub-group v-else :headers="objs[k].v"></sub-group>
-            <button class="btn btn-danger" style="height: 100%" @click="Delete(k);">X</button>
+            <sub-group-input @changed="$emit('changed')" v-if="depth > 0" :depth="depth-1" :objs="objs[k].v" :group="group+'/'+k"></sub-group-input>
+            <sub-group @changed="$emit('changed')" v-else :headers="objs[k].v"></sub-group>
+            <button class="btn btn-danger" @click="Delete(k);">X</button>
     </div>
 </div>`,
   props: ["objs", "depth", "group"],
@@ -219,22 +257,15 @@ Vue.component('sub-group-input', {
       keysMap: {},
     }
   },
-  computed: {
-    itemStyle: function () {
-      return {
-        background: ["rgb(200, 243, 151)", "rgb(159, 226, 81)", "rgb(121, 212, 125)"][this.depth],
-      }
-    },
-  },
   methods: {
     InputClass: function (o, exists) {
-      var r = ["change-input"]
+      var r = [];
 
       o = o || "";
       if (exists[o] == undefined) {
         Vue.set(exists, o, o)
       }
-      var n = exists[o]
+      var n = exists[o];
       if (n != o) {
         if (typeof exists[n] != "undefined") {
           r.push("input-error")
@@ -254,17 +285,20 @@ Vue.component('sub-group-input', {
 
       Vue.delete(this.objs, o);
       Vue.delete(this.keysMap, o);
+      this.$emit('changed');
     },
     Add: function (n) {
       if (this.objs[n]) {
         return
       }
-      Vue.set(this.objs, n, runtime.getNewHost())
-      Vue.set(this.keysMap, n, n)
+      Vue.set(this.objs, n, runtime.getNewHost());
+      Vue.set(this.keysMap, n, n);
+      this.$emit('changed');
     },
     Delete: function (o) {
       Vue.delete(this.objs, o);
       Vue.delete(this.keysMap, o);
+      this.$emit('changed');
     },
     Sorted: function (objs) {
       return Object.keys(objs).sort(function (a, b) {
@@ -273,7 +307,7 @@ Vue.component('sub-group-input', {
     },
 
   },
-})
+});
 
 var app = new Vue({
   el: '#app',
@@ -288,16 +322,18 @@ var app = new Vue({
     autoComplete: {
       "type": 0,
       "ele": undefined
-    }
+    },
+    changed: false,
   },
   methods: {
-    Sorted: function (objs) {
-      return Object.keys(objs).sort(function (a, b) {
-        return objs[a].p < objs[b].p
-      })
+    Changed: function () {
+      this.changed = true;
     },
-
-    Save: customConfig.save,
+    Save: function () {
+      if (customConfig.save()) {
+        this.changed = false;
+      }
+    },
     SearchFilter: function (tags) {
       var filters = this.searchFilter.filters;
       for (var i = 0; i < filters.length; i++) {
