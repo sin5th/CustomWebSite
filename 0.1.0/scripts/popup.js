@@ -149,12 +149,11 @@ Vue.component('sub-group', {
             <div class="group">
                 <input type="checkbox" v-model="header[4]">
 
-                <input
-                        v-for="_, i in [0,1,2]"
-                        v-model="header[i]"
-                        class="change-input"
-                        @focus="BindComplete((typeIndex+1)*10+i, $event.target)"
-                        :placeholder="'+'+config.values[i]">
+                <input v-for="_, i in [0,1,2]"
+                       v-model="header[i]"
+                       class="change-input"
+                       @focus="BindComplete((typeIndex+1)*10+i, $event.target)"
+                       :placeholder="'+'+config.values[i]">
 
 
                 <div class="group group-item-tags">
@@ -167,7 +166,6 @@ Vue.component('sub-group', {
                     </div>
                 </div>
             </div>
-
 
             <button class="btn btn-danger"
                     @click="headers[typeIndex].splice(index,1)">
@@ -195,14 +193,11 @@ Vue.component('sub-group', {
     config: function () {
       return config
     },
-
-  },
-  watch: {
-    headers: function () {
-      this.$emit("changed")
-    }
   },
   methods: {
+    Log: function () {
+      console.log(JSON.stringify(this.objs))
+    },
     BindComplete: function () {
 
     },
@@ -217,7 +212,6 @@ Vue.component('sub-group', {
       var l = p[k] || [];
       l.unshift(runtime.getNewHeader());
       Vue.set(p, k, l);
-      this.$emit('changed');
     },
     SearchFilter: function () {
       return true
@@ -230,24 +224,23 @@ Vue.component('sub-group-input', {
   // options
   template: `<div class="group">
     <div class="group-item-add">
-    <input class="hide-me change-input"
-      :placeholder="'Add New ' + suggestions[depth]"
-      @keyup.enter="
+        <input class="hide-me change-input"
+               :placeholder="'Add New ' + suggestions[depth]"
+               @keyup.enter="
       Add($event.target.value);
       $event.target.value='';">
-      <span class="show-me"></span>
+        <span class="show-me"></span>
     </div>
 
     <div class="group-item" :class="'group-item-'+depth" v-bind:key="group+'/'+k" v-for="(k, _) in Sorted(objs)">
-            <input v-model="keysMap[k]"
-            @keyup.enter="Rename(k, keysMap[k])"
-            class="change-input"
-            :class="InputClass(k, keysMap)"
-            placeholder="---"
-            >
-            <sub-group-input @changed="$emit('changed')" v-if="depth > 0" :depth="depth-1" :objs="objs[k].v" :group="group+'/'+k"></sub-group-input>
-            <sub-group @changed="$emit('changed')" v-else :headers="objs[k].v"></sub-group>
-            <button class="btn btn-danger" @click="Delete(k);">X</button>
+        <input v-model="keysMap[k]"
+               @keyup.enter="Rename(k, keysMap[k])"
+               class="change-input"
+               :class="InputClass(k, keysMap)"
+               placeholder="---">
+        <sub-group-input v-if="depth > 0" :depth="depth-1" :objs="objs[k].v" :group="group+'/'+k"></sub-group-input>
+        <sub-group v-else :headers="objs[k].v"></sub-group>
+        <button class="btn btn-danger" @click="Delete(k);">X</button>
     </div>
 </div>`,
   props: ["objs", "depth", "group"],
@@ -285,7 +278,6 @@ Vue.component('sub-group-input', {
 
       Vue.delete(this.objs, o);
       Vue.delete(this.keysMap, o);
-      this.$emit('changed');
     },
     Add: function (n) {
       if (this.objs[n]) {
@@ -293,12 +285,10 @@ Vue.component('sub-group-input', {
       }
       Vue.set(this.objs, n, runtime.getNewHost());
       Vue.set(this.keysMap, n, n);
-      this.$emit('changed');
     },
     Delete: function (o) {
       Vue.delete(this.objs, o);
       Vue.delete(this.keysMap, o);
-      this.$emit('changed');
     },
     Sorted: function (objs) {
       return Object.keys(objs).sort(function (a, b) {
@@ -309,30 +299,74 @@ Vue.component('sub-group-input', {
   },
 });
 
+function compareObject(o1, o2) {
+  if (typeof o1 != typeof o2)return false;
+  if (typeof o1 == 'object') {
+    var compared = {};
+    for (var o in o1) {
+      if (!compareObject(o1[o], o2[o]))return false;
+      compared[o] = true;
+    }
+    for (var o in o2) {
+      if (!compared[o]) {
+        if (!compareObject(o1[o], o2[o]))return false;
+      }
+    }
+    return true;
+  } else {
+    return o1 === o2;
+  }
+}
+
 var app = new Vue({
   el: '#app',
-  data: {
-    message: 'Hello Vue!',
-    user: customConfig.load(),
-    runtime: customConfig.runtime(),
-    config: config,
-    searchFilter: {
-      "filters": ["", "", ""]
-    },
-    autoComplete: {
-      "type": 0,
-      "ele": undefined
-    },
-    changed: false,
+  data: function () {
+    var user = customConfig.load();
+    return {
+      message: 'Hello Vue!',
+      user: user,
+      userLast: JSON.parse(JSON.stringify(user)),
+      config: config,
+      searchFilter: {
+        "filters": ["", "", ""]
+      },
+      autoComplete: {
+        "type": 0,
+        "ele": undefined
+      },
+    }
+  },
+  watch: {
+    user: {
+      handler: (function () {
+        var i = 0;
+        return function () {
+          if (i === 0) {
+            i++;
+            this.Save(true)
+          }
+        }
+      })(),
+      deep: true
+    }
+  },
+  computed: {
+    changed: function () {
+      return !compareObject(this.user, this.userLast)
+    }
   },
   methods: {
     Changed: function () {
-      this.changed = true;
+      // this.changed = true;
     },
-    Save: function () {
-      if (customConfig.save()) {
-        this.changed = false;
+    Save: function (update) {
+      if (update || customConfig.save()) {
+        this.userLast = JSON.parse(JSON.stringify(this.user));
+        this.saveTime = runtime.saveTime;
       }
+    },
+    Reset: function () {
+      this.user = JSON.parse(JSON.stringify(this.userLast));
     },
     SearchFilter: function (tags) {
       var filters = this.searchFilter.filters;
