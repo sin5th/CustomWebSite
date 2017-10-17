@@ -22,31 +22,42 @@
                 <button class="btn btn-success" :class="changed?['input-warning']:[]" type="button" @click="Reset()">
                     Reset
                 </button>
+                <button class="btn btn-success" v-for="t in ['headers','scripts']" @click="tab=t">{{t}}</button>
             </div>
         </div>
 
-
-        <div class="row group-item group-item-0">
+        <div class="row group-item group-item-0" v-if="tab == 'headers'">
             <sub-group-input @changed="Changed" depth="2" :objs="user.hosts" group="">
             </sub-group-input>
         </div>
 
+        <div class="group-item group-item-0" v-if="tab == 'scripts'">
+            <button class="btn btn-warning" @click="user.scripts = {}">Clear</button>
+            <div class="group">
+                <div class="group-item" v-for="t in [['', '']]">
+                    <input class="change-input" placeholder="take a name" v-model="t[0]"
+                           @keyup.enter="$set(user.scripts, t[0], t[1])"/>
+                    <div class="group">
+                        <textarea class="change-input" placeholder="hi" style="width: 100%;text-align: left;" v-model="t[1]"></textarea>
+                    </div>
+                    <button class="btn btn-success" @click="$delete(user.scripts, key)">+</button>
+                </div>
 
-        <div v-if="false" class="row">
-            <h1>Search</h1>
-            <input v-for="(tagsName, i) in config.types"
-                   @keyup.enter="$set(searchFilter.filters,i,$event.target.value)"
-                   @focus="BindComplete(i, $event.target)"
-                   :placeholder="tagsName">
-        </div>
+                <div class="group-item" v-for="(script, key) in user.scripts">
+                    <input class="change-input" placeholder="take a name" :value="key" @keyup.enter="
+                    var nk=$event.target.value;
+                    if (nk != key) {
+                        $set(user.scripts, nk, script);
+                        $delete(user.scripts, key);
+                    }"/>
 
-        <div v-if="false">
-            <h1>Suggestion</h1>
-            <div v-for="(v, _) in FilterComplete()">
-                <label @click="AutoComplete(v)">{{ v }}</label>
+                    <div class="group">
+                        <textarea class="change-input" style="width: 100%;text-align: left;" v-model="user.scripts[key]"></textarea>
+                    </div>
+                    <button class="btn btn-danger" @click="$delete(user.scripts, key)">x</button>
+                </div>
             </div>
         </div>
-
     </template>
 </div>
 </body>

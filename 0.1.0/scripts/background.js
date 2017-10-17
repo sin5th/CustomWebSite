@@ -22,7 +22,7 @@ function getHeaders(hosts, url, type, method, stage) {
   c = c.v[url.port] || c.v[""]
   if (c === undefined) return false;
   c = c.v[url.pathname] || c.v[""]
-  
+
   // check headers
   var headers = c.v[{"req": 0, "rsp": 1}[stage]];
   if (headers === undefined) return false;
@@ -36,7 +36,7 @@ function getHeaders(hosts, url, type, method, stage) {
     }
     var conditions = header[3];
     for (var i = 0; i < condition.length; i++) {
-      console.log(conditions[i],condition[i]);
+      console.log(conditions[i], condition[i]);
       if (Object.keys(conditions[i]).length > 0 &&
         !conditions[i].hasOwnProperty(condition[i])) {
         return;
@@ -100,6 +100,7 @@ chrome.webRequest.onHeadersReceived.addListener(
   ['responseHeaders', 'blocking']
 );
 
-console.log(chrome.browserAction.onClicked.addListener(function (activeTab) {
-  chrome.tabs.create({url: "/popup.html"});
-}));
+chrome.browserAction.onClicked.addListener(
+  function (activeTab) {
+    chrome.tabs.create({url: "/popup.html"});
+  });

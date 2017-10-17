@@ -71,15 +71,15 @@ var config = {
       'Upgrade',
       'Via',
       'Warning',
-      'X-Forwarded-For',
-      'X-Forwarded-Host',
-      'X-Forwarded-Proto',
+      'x-Forwarded-For',
+      'x-Forwarded-Host',
+      'x-Forwarded-Proto',
       'Front-End-Https',
-      'X-Http-Method-Override',
-      'X-ATT-DeviceId',
-      'X-Wap-Profile',
-      'X-UIDH',
-      'X-Csrf-Token'],
+      'x-Http-Method-Override',
+      'x-ATT-DeviceId',
+      'x-Wap-Profile',
+      'x-UIDH',
+      'x-Csrf-Token'],
     11: [],
     12: [','],
     20: [
@@ -119,15 +119,15 @@ var config = {
       'Via',
       'Warning',
       'WWW-Authenticate',
-      'X-Frame-Options',
-      'X-XSS-Protection',
+      'x-Frame-Options',
+      'x-XSS-Protection',
       'Content-Security-Policy',
-      'X-Content-Type-Options',
-      'X-Powered-By',
-      'X-UA-Compatible',
-      'X-Content-Duration',
-      'X-Content-Security-Policy',
-      'X-WebKit-CSP',
+      'x-Content-Type-Options',
+      'x-Powered-By',
+      'x-UA-Compatible',
+      'x-Content-Duration',
+      'x-Content-Security-Policy',
+      'x-WebKit-CSP',
     ],
     21: [],
     22: [',']
@@ -169,7 +169,7 @@ Vue.component('sub-group', {
 
             <button class="btn btn-danger"
                     @click="headers[typeIndex].splice(index,1)">
-                X
+                x
             </button>
         </div>
     </template>
@@ -226,9 +226,7 @@ Vue.component('sub-group-input', {
     <div class="group-item-add">
         <input class="hide-me change-input"
                :placeholder="'Add New ' + suggestions[depth]"
-               @keyup.enter="
-      Add($event.target.value);
-      $event.target.value='';">
+               @keyup.enter="Add($event.target.value);$event.target.value='';">
         <span class="show-me"></span>
     </div>
 
@@ -240,7 +238,7 @@ Vue.component('sub-group-input', {
                placeholder="---">
         <sub-group-input v-if="depth > 0" :depth="depth-1" :objs="objs[k].v" :group="group+'/'+k"></sub-group-input>
         <sub-group v-else :headers="objs[k].v"></sub-group>
-        <button class="btn btn-danger" @click="Delete(k);">X</button>
+        <button class="btn btn-danger" @click="Delete(k);">x</button>
     </div>
 </div>`,
   props: ["objs", "depth", "group"],
@@ -300,16 +298,16 @@ Vue.component('sub-group-input', {
 });
 
 function compareObject(o1, o2) {
-  if (typeof o1 != typeof o2)return false;
+  if (typeof o1 != typeof o2) return false;
   if (typeof o1 == 'object') {
     var compared = {};
     for (var o in o1) {
-      if (!compareObject(o1[o], o2[o]))return false;
+      if (!compareObject(o1[o], o2[o])) return false;
       compared[o] = true;
     }
     for (var o in o2) {
       if (!compared[o]) {
-        if (!compareObject(o1[o], o2[o]))return false;
+        if (!compareObject(o1[o], o2[o])) return false;
       }
     }
     return true;
@@ -334,6 +332,7 @@ var app = new Vue({
         "type": 0,
         "ele": undefined
       },
+      tab: "scripts",
     }
   },
   watch: {

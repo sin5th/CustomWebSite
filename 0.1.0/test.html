@@ -42,4 +42,26 @@
         background: green;
     }
 </style>
+<script>
+  $.ajax({
+
+    url: "https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.2/vue.js",
+
+    dataType: 'script',
+
+    success: function (data, status) {
+      console.log(data, status)
+    }
+
+  });
+
+  $.getScript("http://www.111cn.net/wy/jquery/52201.htm")
+    .done(function (script, textStatus) {
+      console.log(script);
+      console.log(textStatus);
+    })
+    .fail(function (jqxhr, settings, exception) {
+      console.log("Triggered ajaxError handler.", jqxhr, settings, exception);
+    });
+</script>
 </html>

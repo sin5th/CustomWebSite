@@ -51,6 +51,10 @@ var migrate_funcs = [
 
     modifyTag(items.hosts);
     return items
+  },
+  function (items) {
+    items.scripts = {};
+    return items
   }
 ];
 
@@ -84,50 +88,52 @@ if (typeof chrome == "undefined") {
 
 // fake data
 chrome.storage = chrome.storage || {
-    local: {
-      set: function (items, callback) {
-        console.log(JSON.stringify(items));
-        window.alert("不支持保存");
-      },
-      get: function (key, callback) {
-        callback({
-          "hosts": {
-            "www.baidu.com": [
-              [ // request
-                [
-                  "Foo", // name
-                  "bar", // value
-                  "", // spliter
-                  [ // filters
-                    [ // method
-                      "GET"
-                    ],
-                    [ // "type"
-                      "main_frame"
-                    ],
-                    [ // "protocol"
-                      "https"
-                    ]
+  local: {
+    set: function (items, callback) {
+      console.log(JSON.stringify(items));
+      window.alert("不支持保存");
+    },
+    get: function (key, callback) {
+      callback({
+        "hosts": {
+          "www.baidu.com": [
+            [ // request
+              [
+                "Foo", // name
+                "bar", // value
+                "", // spliter
+                [ // filters
+                  [ // method
+                    "GET"
                   ],
-                  true // checked
-                ]
-              ],
-              [ // response
-
+                  [ // "type"
+                    "main_frame"
+                  ],
+                  [ // "protocol"
+                    "https"
+                  ]
+                ],
+                true // checked
               ]
+            ],
+            [ // response
+
             ]
-          },
-          "version": 1
-        });
-      }
+          ]
+        },
+        "version": 1
+      });
     }
-  };
+  }
+};
 
 
 var customConfig = function () {
   var user = {
     "hosts": {},
+    "scripts": {},
     "saveTime": undefined,
+    "version": "",
   };
 
   var runtime = {
@@ -156,13 +162,12 @@ var customConfig = function () {
       return false
     },
     "load": function () {
-      chrome.storage.local.get(["hosts", "saveTime", "version"], function (items) {
+      chrome.storage.local.get(null, function (items) {
         items = migrate(items);
         runtime.saveTime = items.saveTime || 1;
         Object.keys(items).forEach(function (k) {
           user[k] = items[k];
         });
-        console.log("load")
       });
       return user
     },

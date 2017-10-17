@@ -1,4 +1,36 @@
 {
+  "content_scripts": [
+    {
+      "js": [
+        "scripts/content/start.js",
+        "scripts/content.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "js": [
+        "scripts/content/end.js",
+        "scripts/content.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_end"
+    },
+    {
+      "js": [
+        "scripts/content/idle.js",
+        "scripts/content.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
   "background": {
     "scripts": [
       "resource/jquery.min.js",
@@ -10,17 +42,18 @@
     "default_icon": "resource/icon.png",
     "default_title": "Custom Web Site"
   },
-  "content_security_policy": "script-src 'self' 'unsafe-eval' https://ssl.google-analytics.com; object-src 'self'",
+  "content_security_policy": "script-src 'self' 'unsafe-eval' https://*.github.com https://cdnjs.cloudflare.com https://ssl.google-analytics.com; object-src 'self'",
   "description": "Custom request and response headers, init scripts, style sheets",
   "incognito": "spanning",
   "manifest_version": 2,
   "name": "CustomWebSite",
   "permissions": [
+    "<all_urls>",
+    "activeTab",
     "unlimitedStorage",
     "storage",
     "webRequest",
-    "webRequestBlocking",
-    "<all_urls>"
+    "webRequestBlocking"
   ],
   "update_url": "https://clients2.google.com/service/update2/crx",
   "version": "0.2.0"
