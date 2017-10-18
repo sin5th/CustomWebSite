@@ -8,57 +8,170 @@
     <link type="image/ico" rel="icon" href="resource/icon.png">
 </head>
 <body>
-<div id="app" style="min-width: 1200px">
-    <template>
-        <div class="toolbar-parent">
-            <div class="toolbar">
-                <a href="https://github.com/sin5th" target="_blank">
-                    <img style="height: 100%" alt="Author Blog" src="resource/icon.png">
-                </a>
-                <button class="btn btn-success" type="button" @click="Log(JSON.stringify(user, null, 1))">Log</button>
-                <button class="btn btn-success" :class="changed?['input-warning']:[]" type="button" @click="Save()">
-                    Save
-                </button>
-                <button class="btn btn-success" :class="changed?['input-warning']:[]" type="button" @click="Reset()">
-                    Reset
-                </button>
-                <button class="btn btn-success" v-for="t in ['headers','scripts']" @click="tab=t">{{t}}</button>
-            </div>
+<script type="text/x-template" id="sub-group-input">
+    <div class="group">
+        <div class="group-item-add">
+            <input class="hide-me change-input"
+                   :placeholder="'Add New ' + suggestions[depth]"
+                   @keyup.enter="Add($event.target.value);$event.target.value='';">
+            <span class="show-me"></span>
         </div>
 
-        <div class="row group-item group-item-0" v-if="tab == 'headers'">
-            <sub-group-input @changed="Changed" depth="2" :objs="user.hosts" group="">
-            </sub-group-input>
+        <div class="group-item" :class="'group-item-'+depth" :key="group+'/'+k" v-for="(k, _) in Sorted(objs)">
+            <input v-model="keysMap[k]"
+                   @keyup.enter="Rename(k, keysMap[k])"
+                   class="change-input"
+                   :class="InputClass(k, keysMap)"
+                   placeholder="---">
+            <sub-group-input v-if="depth > 0" :depth="depth-1" :objs="objs[k].v" :group="group+'/'+k"></sub-group-input>
+            <sub-group v-else :headers="objs[k].v"></sub-group>
+            <button class="btn btn-danger" @click="Delete(k);">x</button>
         </div>
+    </div>
+</script>
+<script type="text/x-template" id="sub-group">
+    <div class="group">
+        <template v-for="(type,typeIndex) in ['Request Headers']">
+            <button class="btn btn-primary" @click="Add(headers, typeIndex)">
+                Add New {{type}}
+            </button>
+            <div class="group-item" :class="'group-item-0-'+typeIndex"
+                 v-if="SearchFilter(header[3])"
+                 v-for="(header, index) in headers[typeIndex]">
 
-        <div class="group-item group-item-0" v-if="tab == 'scripts'">
-            <button class="btn btn-warning" @click="user.scripts = {}">Clear</button>
-            <div class="group">
-                <div class="group-item" v-for="t in [['', '']]">
-                    <input class="change-input" placeholder="take a name" v-model="t[0]"
-                           @keyup.enter="$set(user.scripts, t[0], t[1])"/>
-                    <div class="group">
-                        <textarea class="change-input" placeholder="hi" style="width: 100%;text-align: left;" v-model="t[1]"></textarea>
+                <div class="group">
+                    <input type="checkbox" v-model="header[4]">
+
+                    <input v-for="_, i in [0,1,2]"
+                           v-model="header[i]"
+                           class="change-input"
+                           @focus="BindComplete((typeIndex+1)*10+i, $event.target)"
+                           :placeholder="'+'+config.values[i]">
+
+
+                    <div class="group group-item-tags">
+                        <div class="group-item-add" v-for="(tags, i) in candidateTags.groups">
+                            <button :class="header[3][i][tag]?['enable']:['disable']"
+                                    @click="ToggleTag(header[3][i], tag)"
+                                    v-for="tag in tags">
+                                {{tag}}
+                            </button>
+                        </div>
                     </div>
-                    <button class="btn btn-success" @click="$delete(user.scripts, key)">+</button>
                 </div>
 
-                <div class="group-item" v-for="(script, key) in user.scripts">
-                    <input class="change-input" placeholder="take a name" :value="key" @keyup.enter="
+                <button class="btn btn-danger"
+                        @click="headers[typeIndex].splice(index,1)">
+                    x
+                </button>
+            </div>
+        </template>
+    </div>
+</script>
+
+<script type="text/x-template" id="modal-template">
+    <transition name="modal">
+        <div class="modal-mask">
+            <div class="modal-wrapper">
+                <div class="modal-container">
+
+                    <div class="modal-header">
+                        <slot name="header">
+                            default header
+                        </slot>
+                    </div>
+
+                    <div class="modal-body">
+                        <slot name="body">
+                            default body
+                        </slot>
+                    </div>
+
+                    <div class="modal-footer">
+                        <slot name="footer">
+                            default footer
+                            <button class="modal-default-button" @click="$emit('close')">
+                                OK
+                            </button>
+                        </slot>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
+</script>
+
+<div id="app" style="min-width: 1200px">
+    <div class="toolbar-parent">
+        <div class="toolbar">
+            <a href="https://github.com/sin5th" target="_blank">
+                <img style="height: 100%" alt="Author Blog" src="resource/icon.png">
+            </a>
+
+            <template v-for="t in ['headers','scripts','styles']">
+                <button class="btn btn-info" type="button" @click="tab=t">
+                    {{t}}
+                </button>
+                {{' '}}<!--for space between elements-->
+            </template>
+
+            <button class="btn btn-success" type="button" @click="Log(JSON.stringify(user, null, 1))">Log</button>
+            <button class="btn btn-success" :class="changed?['input-warning']:[]" type="button" @click="Save()">
+                Save
+            </button>
+            <button class="btn btn-success" :class="changed?['input-warning']:[]" type="button" @click="Reset()">
+                Reset
+            </button>
+
+        </div>
+    </div>
+
+    <div class="row group-item group-item-0" v-if="tab == 'headers'">
+        <sub-group-input @changed="Changed" depth="2" :objs="user.hosts" group="">
+        </sub-group-input>
+    </div>
+
+
+    <div class="group-item group-item-1" v-if="tab == 'scripts'">
+        <div class="group" style="width: 50%" v-for="(objs, i) in [user.scripts, user.styles]">
+            <div class="group-item group-item-0" v-for="t in [newAddDict[i]]">
+                <input class="change-input" placeholder="take a name" v-model="t.name"
+                       @keyup.enter="$set(objs, t.name, t.content);t.name='';t.content='';"/>
+                <input class="group change-input" @focus="showModal=i"
+                       :placeholder="t.content||('add a new ' + ['script', 'style'][i])"
+                       :value="t.content.substr(0, 100)"/>
+                <modal v-if="showModal===i">
+                    <h3 slot="header">{{t.name}}</h3>
+                    <textarea slot="body" v-focus v-model="t.content">
+                    </textarea>
+                    <button slot="footer" class="modal-default-button" @click="showModal=false">
+                        Close
+                    </button>
+                </modal>
+                <button @click="this.console.log(t)">hi</button>
+            </div>
+
+            <div class="group-item group-item-0" v-for="(content, key) in objs">
+                <input class="change-input" placeholder="take a new name"
+                       :value="key" @keyup.enter="
                     var nk=$event.target.value;
                     if (nk != key) {
-                        $set(user.scripts, nk, script);
-                        $delete(user.scripts, key);
+                        $set(objs, nk, script);
+                        $delete(objs, key);
                     }"/>
 
-                    <div class="group">
-                        <textarea class="change-input" style="width: 100%;text-align: left;" v-model="user.scripts[key]"></textarea>
-                    </div>
-                    <button class="btn btn-danger" @click="$delete(user.scripts, key)">x</button>
-                </div>
+                <input class="group change-input" @focus="showModal = key"
+                       :value="content.substr(0, 100)"/>
+                <modal v-if="showModal===key" @close="showModal = false">
+                    <h3 slot="header">{{key}}</h3>
+                    <textarea slot="body" v-focus v-model="objs[key]">
+                    </textarea>
+                </modal>
+
+                <button class="btn btn-danger" @click="$delete(objs, key)">x</button>
             </div>
         </div>
-    </template>
+    </div>
 </div>
 </body>
 <script src="scripts/store.js"></script>
@@ -251,5 +364,71 @@
 
     .input-warning, .change-input.input-warning {
         box-shadow: 0 0 20px 5px #ffbc21;
+    }
+</style>
+
+<style>
+    .modal-mask {
+        position: fixed;
+        z-index: 9998;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, .5);
+        display: table;
+        transition: opacity .3s ease;
+    }
+
+    .modal-wrapper {
+        display: table-cell;
+        vertical-align: middle;
+    }
+
+    .modal-container {
+        width: 300px;
+        margin: 0px auto;
+        padding: 20px 30px;
+        background-color: #fff;
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+        transition: all .3s ease;
+        font-family: Helvetica, Arial, sans-serif;
+    }
+
+    .modal-header h3 {
+        margin-top: 0;
+        color: #42b983;
+    }
+
+    .modal-body {
+        margin: 20px 0;
+    }
+
+    .modal-default-button {
+        float: right;
+    }
+
+    /*
+     * The following styles are auto-applied to elements with
+     * transition="modal" when their visibility is toggled
+     * by Vue.js.
+     *
+     * You can easily play with the modal transition by editing
+     * these styles.
+     */
+
+    .modal-enter {
+        opacity: 0;
+    }
+
+    .modal-leave-active {
+        opacity: 0;
+    }
+
+    .modal-enter .modal-container,
+    .modal-leave-active .modal-container {
+        -webkit-transform: scale(1.1);
+        transform: scale(1.1);
     }
 </style>

@@ -55,7 +55,11 @@ var migrate_funcs = [
   function (items) {
     items.scripts = {};
     return items
-  }
+  },
+  function (items) {
+    items.styles = {};
+    return items
+  },
 ];
 
 function migrate(items) {
@@ -88,50 +92,51 @@ if (typeof chrome == "undefined") {
 
 // fake data
 chrome.storage = chrome.storage || {
-  local: {
-    set: function (items, callback) {
-      console.log(JSON.stringify(items));
-      window.alert("不支持保存");
-    },
-    get: function (key, callback) {
-      callback({
-        "hosts": {
-          "www.baidu.com": [
-            [ // request
-              [
-                "Foo", // name
-                "bar", // value
-                "", // spliter
-                [ // filters
-                  [ // method
-                    "GET"
+    local: {
+      set: function (items, callback) {
+        console.log(JSON.stringify(items));
+        window.alert("不支持保存");
+      },
+      get: function (key, callback) {
+        callback({
+          "hosts": {
+            "www.baidu.com": [
+              [ // request
+                [
+                  "Foo", // name
+                  "bar", // value
+                  "", // spliter
+                  [ // filters
+                    [ // method
+                      "GET"
+                    ],
+                    [ // "type"
+                      "main_frame"
+                    ],
+                    [ // "protocol"
+                      "https"
+                    ]
                   ],
-                  [ // "type"
-                    "main_frame"
-                  ],
-                  [ // "protocol"
-                    "https"
-                  ]
-                ],
-                true // checked
-              ]
-            ],
-            [ // response
+                  true // checked
+                ]
+              ],
+              [ // response
 
+              ]
             ]
-          ]
-        },
-        "version": 1
-      });
+          },
+          "version": 1
+        });
+      }
     }
-  }
-};
+  };
 
 
 var customConfig = function () {
   var user = {
     "hosts": {},
     "scripts": {},
+    "styles": {},
     "saveTime": undefined,
     "version": "",
   };
@@ -177,3 +182,139 @@ var customConfig = function () {
   };
 }();
 
+
+var config = {
+  values: ['name', 'value', 'spliter'],
+  types: ['method', 'type', 'protocol'],
+  autoComplete: {
+    0: [
+      'GET',
+      'POST',
+      'DELETE',
+      'UPDATE',
+      'PUT',
+      'HEAD',
+      'OPTIONS',
+      'TRACE',
+      'CONNECT',
+    ],
+    1: [
+      'xmlhttprequest',
+
+      'main_frame',
+      'sub_frame',
+      'stylesheet',
+      'script',
+      'image',
+      'object',
+      'other',
+    ],
+    2: [
+      'chrome-extension:',
+      'https:',
+      'file:',
+      'http:',
+      'ftp:',
+      'ws:',
+      'wss:',
+    ],
+    10: [
+      'Authorization',
+      'Cache-Control',
+      'Connection',
+      'Content-Length',
+      'Host',
+      'If-Modified-Since',
+      'If-None-Match',
+      'If-Range',
+      'Partial-Data',
+      'Pragma',
+      'Proxy-Authorization',
+      'Proxy-Connection',
+      'Transfer-Encoding',
+      'Accept',
+      'Accept-Charset',
+      'Accept-Encoding',
+      'Accept-Language',
+      'Accept-Datetime',
+      'Cookie',
+      'Content-MD5',
+      'Content-Type',
+      'Date',
+      'Expect',
+      'From',
+      'If-Match',
+      'If-Unmodified-Since',
+      'Max-Forwards',
+      'Origin',
+      'Range',
+      'Referer',
+      'TE',
+      'User-Agent',
+      'Upgrade',
+      'Via',
+      'Warning',
+      'x-Forwarded-For',
+      'x-Forwarded-Host',
+      'x-Forwarded-Proto',
+      'Front-End-Https',
+      'x-Http-Method-Override',
+      'x-ATT-DeviceId',
+      'x-Wap-Profile',
+      'x-UIDH',
+      'x-Csrf-Token'],
+    11: [],
+    12: [','],
+    20: [
+      'Access-Control-Allow-Origin',
+      'Accept-Patch',
+      'Accept-Ranges',
+      'Age',
+      'Allow',
+      'Connection',
+      'Content-Disposition',
+      'Content-Encoding',
+      'Content-Language',
+      'Content-Length',
+      'Content-Location',
+      'Content-MD5',
+      'Content-Range',
+      'Content-Type',
+      'Date',
+      'ETag',
+      'Expires',
+      'Last-Modified',
+      'Link',
+      'Location',
+      'P3P',
+      'Pragma',
+      'Proxy-Authenticate',
+      'Public-Key-Pins',
+      'Refresh',
+      'Retry-After',
+      'Server',
+      'Set-Cookie',
+      'Strict-Transport-Security',
+      'Trailer',
+      'Transfer-Encoding',
+      'Upgrade',
+      'Vary',
+      'Via',
+      'Warning',
+      'WWW-Authenticate',
+      'x-Frame-Options',
+      'x-XSS-Protection',
+      'Content-Security-Policy',
+      'x-Content-Type-Options',
+      'x-Powered-By',
+      'x-UA-Compatible',
+      'x-Content-Duration',
+      'x-Content-Security-Policy',
+      'x-WebKit-CSP',
+    ],
+    21: [],
+    22: [',']
+  }
+};
+
+var runtime = customConfig.runtime();
